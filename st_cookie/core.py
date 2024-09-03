@@ -1,6 +1,7 @@
 import base64
 import pickle
 from typing import Any, Generic, TypeVar
+from urllib.parse import unquote
 
 key_prefix = "st_cookie__"
 
@@ -29,6 +30,7 @@ def obj_to_txt(obj: Any):
 
 # De-serialize an object from a plain text
 def txt_to_obj(txt: str) -> Any:
+    txt = unquote(txt)
     base64_bytes = txt.encode("ascii")
     message_bytes = base64.b64decode(base64_bytes)
     obj = pickle.loads(message_bytes)

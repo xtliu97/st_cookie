@@ -13,7 +13,7 @@ class CookieManager:
 
     def get(self, key: str) -> Any:
         if str_value := st.context.cookies.get(_Key(key).cookie_key):
-            cookie_kv = CookieKV(key, str_value)
+            cookie_kv = CookieKV.from_str(key, str_value)
             return cookie_kv.value.raw
         return None
 
@@ -31,9 +31,12 @@ class CookieManager:
             return True
 
     def get_all(self):
-        with st.container(height=1, border=False):
-            st.html("<style>div[height='1']{display:none;}</style>")
-            return self.cookie_controller.getAll()
+        all_cookies = {}
+        for key in st.context.cookies.keys():
+            if key.startswith(key_prefix):
+                cookie_kv = CookieKV.from_str(key, st.context.cookies.get(key))
+                all_cookies[cookie_kv.key] = cookie_kv.value.raw
+        return all_cookies
 
     def load_to_session_state(self) -> None:
         if not self._is_session_start():
@@ -59,6 +62,7 @@ class CookieManager:
         self.set(key, st.session_state[key])
 
     @contextmanager
-    def record(self, key: str):
+    def record(self, *keys: str):
         yield
-        self.set(key, st.session_state[key])
+        for key in keys:
+            self.set(key, st.session_state[key])

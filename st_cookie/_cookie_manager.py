@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, List
 
 import streamlit as st
 from streamlit_cookies_controller import CookieController
@@ -38,12 +38,21 @@ class CookieManager:
                 all_cookies[cookie_kv.key] = cookie_kv.value.raw
         return all_cookies
 
-    def load_to_session_state(self) -> None:
+    def load_to_session_state(
+        self, keeps: List[str] = None, ignores: List[str] = None
+    ) -> None:
         if not self._is_session_start():
             return
 
-        for key in st.context.cookies.keys():
-            if key.startswith(key_prefix):
+        target_keys = (
+            [_Key(key).cookie_key for key in keeps]
+            if keeps
+            else st.context.cookies.keys()
+        )
+        ignores = set(_Key(key).cookie_key for key in ignores) if ignores else set()
+
+        for key in target_keys:
+            if key.startswith(key_prefix) and key not in ignores:
                 cookie_kv = CookieKV.from_str(key, st.context.cookies.get(key))
                 st.session_state[cookie_kv.key] = cookie_kv.value.raw
 

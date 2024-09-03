@@ -7,7 +7,7 @@ setup(
     version=__version__,
     author="xtliu97",
     author_email="xtliu1112@outlook.com",
-    description="A short description of your project",
+    description="Streamlit Cookie Writer and Reader",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/xtliu97/st_cookie",

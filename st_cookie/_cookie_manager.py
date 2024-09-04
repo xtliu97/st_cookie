@@ -1,5 +1,6 @@
+import time
 from contextlib import contextmanager
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 
 import streamlit as st
 from streamlit_cookies_controller import CookieController
@@ -34,9 +35,16 @@ class CookieManager:
             st.session_state["_is_session_start"] = True
             return True
 
-    def get_all(self):
+    def get_all(self, backend: Literal["streamlit", "cookie_controller"] = "streamlit"):
         all_cookies = {}
-        for key in st.context.cookies.keys():
+        if backend == "streamlit":
+            all_cookie_keys = st.context.cookies.keys()
+        elif backend == "cookie_controller":
+            all_cookie_keys = self.cookie_controller.getAll().keys()
+            time.sleep(1)
+        else:   
+            raise ValueError(f"Invalid backend: {backend}")
+        for key in all_cookie_keys:
             if key.startswith(key_prefix):
                 cookie_kv = CookieKV.from_str(key, st.context.cookies.get(key))
                 all_cookies[cookie_kv.key] = cookie_kv.value.raw

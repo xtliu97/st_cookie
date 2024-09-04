@@ -8,26 +8,27 @@ pip install st-cookie
 ```
 
 ## Usage
+- import
 ```python
-import streamlit as st
 from st_cookie import cookie_manager
+```
 
-# sync all you set by st_cookie from cookies to session state
-# This can be use at the beginning of the script
+- Usage 1  
+Use `cookie_manager.load_to_session_state()` to load all the variables from cookies to session state. Use `cookie_manager.update()` to update session states to cookies with `on_change` or `on_click` callback of streamlit components.
+```python
 cookie_manager.load_to_session_state()
 
-# track a variable from st.session_state to cookies
-with cookie_manager.record('my_textinput'):
+st.checkbox(
+    "enabled",
+    key="my_checkbox",
+    on_change=lambda: cookie_manager.update("my_checkbox"),
+)
+```
+
+- Usage 2  
+Use context manager `cookie_manager.sync()` to sync variables to between cookies and session states.
+```python
+with cookie_manager.sync("my_textinput", "my_number"):
     st.text_input("Enter text", key="my_textinput")
-
-# or you can use it at on_change or on_click
-st.checkbox("enabled", key="my_checkbox", on_change=lambda :cookie_manager.sync('my_checkbox'))
-
-
-# (Not recommended) set a variable to cookies manually
-# cookie_manager.set('my_variable', 'value')
-
-# Get a variable from cookies
-cookie_manager.get("my_textinput")
-cookie_manager.get("my_checkbox")
+    st.number_input("Enter number", key="my_number")
 ```

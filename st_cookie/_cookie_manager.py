@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Any, List
+from typing import Any, List, Optional
 
 import streamlit as st
 from streamlit_cookies_controller import CookieController
@@ -11,11 +11,15 @@ class CookieManager:
     def __init__(self) -> None:
         self.cookie_controller = CookieController()
 
-    def get(self, key: str) -> Any:
+    def _get(self, key: str) -> Optional[CookieKV]:
         if str_value := st.context.cookies.get(_Key(key).cookie_key):
             cookie_kv = CookieKV.from_str(key, str_value)
-            return cookie_kv.value.raw
+            return cookie_kv
         return None
+        
+    def get(self, key: str) -> Any:
+        cookie_kv = self._get(key)
+        return cookie_kv.value.raw if cookie_kv else None
 
     def set(self, key: str, value: Any) -> None:
         cookie_kv = CookieKV(key, value)
@@ -41,9 +45,6 @@ class CookieManager:
     def load_to_session_state(
         self, keeps: List[str] = None, ignores: List[str] = None
     ) -> None:
-        if not self._is_session_start():
-            return
-
         target_keys = (
             [_Key(key).cookie_key for key in keeps]
             if keeps
@@ -53,13 +54,27 @@ class CookieManager:
 
         for key in target_keys:
             if key.startswith(key_prefix) and key not in ignores:
-                cookie_kv = CookieKV.from_str(key, st.context.cookies.get(key))
-                st.session_state[cookie_kv.key] = cookie_kv.value.raw
+                self.__cookie_to_session_state(key)
 
+    def __cookie_to_session_state(self, key: str):
+        """
+        Load cookies to session state. Only load cookies when session is started.
+        """
+        _cookie_key_loaded = f"{key_prefix}{key}_cookie_loaded"
+
+        if _cookie_key_loaded in st.session_state:
+            return
+        
+        if cookie_kv := self._get(key):
+            st.session_state[cookie_kv.key] = cookie_kv.value.raw
+            
+        st.session_state[_cookie_key_loaded] = True
+        
     def remove_all(self) -> None:
         for key in st.context.cookies.keys():
             if key.startswith(key_prefix):
                 self.remove(key)
+        st.rerun()
 
     def remove(self, key: str) -> None:
         if key in self.cookie_controller.getAll():
@@ -67,11 +82,13 @@ class CookieManager:
                 st.html("<style>div[height='1']{display:none;}</style>")
                 self.cookie_controller.remove(key)
 
-    def sync(self, key: str) -> None:
+    def update(self, key: str) -> None:
         self.set(key, st.session_state[key])
 
     @contextmanager
-    def record(self, *keys: str):
+    def sync(self, *keys: str):
+        for key in keys:
+            self.__cookie_to_session_state(key)
         yield
         for key in keys:
             self.set(key, st.session_state[key])

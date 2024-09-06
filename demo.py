@@ -1,11 +1,12 @@
 import streamlit as st
 
-from st_cookie import cookie_manager
-
 st.set_page_config(layout="wide")
 
+from st_cookie import cookie_manager
+
+
 st.write("## st_cookie demo")
-main_col, cookie_col = st.columns([4,1])
+main_col, cookie_col = st.columns([4, 1])
 
 with cookie_col:
     st.write("### Cookies")
@@ -44,7 +45,7 @@ with usage1_col.container(height=500, border=True):
     st.write("#### Usage 1")
     st.code(usage_code1, language="python")
     exec(usage_code1)
-        
+
 with usage2_col.container(height=500, border=True):
     st.write("#### Usage 2")
     st.code(usage_code2, language="python")

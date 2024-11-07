@@ -1,2 +1,2 @@
-streamlit_cookies_controller
+streamlit-cookies-controller
 streamlit>=1.37.0

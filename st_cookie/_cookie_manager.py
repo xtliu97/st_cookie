@@ -17,7 +17,7 @@ class CookieManager:
             cookie_kv = CookieKV.from_str(key, str_value)
             return cookie_kv
         return None
-        
+
     def get(self, key: str) -> Any:
         cookie_kv = self._get(key)
         return cookie_kv.value.raw if cookie_kv else None
@@ -42,7 +42,7 @@ class CookieManager:
         elif backend == "cookie_controller":
             all_cookie_keys = self.cookie_controller.getAll().keys()
             time.sleep(1)
-        else:   
+        else:
             raise ValueError(f"Invalid backend: {backend}")
         for key in all_cookie_keys:
             if key.startswith(key_prefix):
@@ -72,12 +72,12 @@ class CookieManager:
 
         if _cookie_key_loaded in st.session_state:
             return
-        
+
         if cookie_kv := self._get(key):
             st.session_state[cookie_kv.key] = cookie_kv.value.raw
-            
+
         st.session_state[_cookie_key_loaded] = True
-        
+
     def remove_all(self) -> None:
         for key in st.context.cookies.keys():
             if key.startswith(key_prefix):

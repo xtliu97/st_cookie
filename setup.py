@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "streamlit>=1.36.0",
-        "streamlit-cookies-manager",
+        "streamlit-cookies-controller",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

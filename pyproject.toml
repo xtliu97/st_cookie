@@ -1,0 +1,7 @@
+[project]
+name = "st_cookie"
+version = "1.0.0"
+description = "Streamlit Cookie Writer and Reader"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["streamlit>=1.37", "streamlit-cookies-controller>=0.0.4"]

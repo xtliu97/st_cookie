@@ -1,13 +1,20 @@
 import base64
-import pickle
+import json
 from typing import Any, Generic, TypeVar
 from urllib.parse import unquote
 
 key_prefix = "st_cookie__"
 
 
+class SerializationError(Exception):
+    """Exception raised for errors during serialization/deserialization."""
+    pass
+
+
 class _Key:
     def __init__(self, key: str, key_prefix: str = key_prefix):
+        if not isinstance(key, str):
+            raise ValueError("Cookie key must be a string")
         self.__key_prefix = key_prefix
         self.__key = key.removeprefix(self.__key_prefix)
 
@@ -20,24 +27,50 @@ class _Key:
         return self.__key
 
 
-def obj_to_txt(obj: Any):
-    # Serialize an object into a plain text
-    message_bytes = pickle.dumps(obj)
-    base64_bytes = base64.b64encode(message_bytes)
-    txt = base64_bytes.decode("ascii")
-    return txt
+def obj_to_txt(obj: Any) -> str:
+    """
+    Serialize an object into a plain text using JSON.
+    
+    Args:
+        obj: Any JSON-serializable object
+        
+    Returns:
+        str: Base64 encoded JSON string
+        
+    Raises:
+        SerializationError: If object cannot be serialized
+    """
+    try:
+        json_str = json.dumps(obj)
+        base64_bytes = base64.b64encode(json_str.encode('utf-8'))
+        return base64_bytes.decode('ascii')
+    except (TypeError, json.JSONDecodeError) as e:
+        raise SerializationError(f"Failed to serialize object: {str(e)}")
 
 
-# De-serialize an object from a plain text
 def txt_to_obj(txt: str) -> Any:
-    txt = unquote(txt)
-    base64_bytes = txt.encode("ascii")
-    message_bytes = base64.b64decode(base64_bytes)
-    obj = pickle.loads(message_bytes)
-    return obj
+    """
+    De-serialize an object from a plain text using JSON.
+    
+    Args:
+        txt: Base64 encoded JSON string
+        
+    Returns:
+        Any: Deserialized object
+        
+    Raises:
+        SerializationError: If text cannot be deserialized
+    """
+    try:
+        txt = unquote(txt)
+        base64_bytes = txt.encode('ascii')
+        json_str = base64.b64decode(base64_bytes).decode('utf-8')
+        return json.loads(json_str)
+    except (ValueError, json.JSONDecodeError, base64.binascii.Error) as e:
+        raise SerializationError(f"Failed to deserialize text: {str(e)}")
 
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 class _Value(Generic[T]):
@@ -52,10 +85,16 @@ class _Value(Generic[T]):
 
     @classmethod
     def from_str(cls, value: str):
-        return _Value(txt_to_obj(value))
+        try:
+            return _Value(txt_to_obj(value))
+        except SerializationError as e:
+            raise ValueError(f"Invalid cookie value: {str(e)}")
 
     def to_str(self) -> str:
-        return obj_to_txt(self.__value)
+        try:
+            return obj_to_txt(self.__value)
+        except SerializationError as e:
+            raise ValueError(f"Invalid cookie value: {str(e)}")
 
 
 class CookieKV(Generic[T]):

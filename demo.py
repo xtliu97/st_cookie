@@ -1,52 +1,67 @@
 import streamlit as st
+from st_cookie import get_manager
 
 st.set_page_config(layout="wide")
 
-from st_cookie import cookie_manager
+cookie_manager = get_manager()
 
 
-st.write("## st_cookie demo")
-main_col, cookie_col = st.columns([4, 1])
+def usage1():
+    cookie_manager.load_to_session_state()
 
-with cookie_col:
-    st.write("### Cookies")
-    if st.button("Clear all"):
+    st.checkbox(
+        "enabled",
+        key="my_checkbox",
+        on_change=lambda: cookie_manager.update("my_checkbox"),
+    )
+
+    st.write("my_checkbox", st.session_state.get("my_checkbox"))
+
+
+def usage2():
+    with cookie_manager.sync("my_textinput", "my_number"):
+        st.text_input("Enter text", key="my_textinput")
+        st.number_input("Enter number", key="my_number")
+
+    st.write("my_textinput", st.session_state.get("my_textinput"))
+    st.write("my_number", st.session_state.get("my_number"))
+
+
+def st_code_fn(fn):
+    import inspect
+
+    code = inspect.getsource(fn)
+    st.code(code, language="python")
+
+
+def cookies_states():
+    if st.button("Clear all", type="secondary"):
         cookie_manager.remove_all()
-    st.info("All the related cookies values will be loaded only once after a new session is started.")
-    with st.expander("Show all cookies"):
+    st.info(
+        "All the related cookies values will be loaded only once after a new session is started."
+    )
+    with st.expander("Show all cookies", expanded=True):
         st.json(cookie_manager.get_all())
 
 
-usage_code1 = r"""
-cookie_manager.load_to_session_state()
+def main():
+    st.subheader("st-cookie", divider="gray")
 
-st.checkbox(
-    "enabled",
-    key="my_checkbox",
-    on_change=lambda: cookie_manager.update("my_checkbox"),
-)
+    st.write("### Demo")
+    usage1_col, usage2_col = st.columns(2)
+    with usage1_col.container(height=600, border=True):
+        st.write("#### Usage 1")
+        st_code_fn(usage1)
+        usage1()
 
-st.write("my_checkbox", st.session_state.get("my_checkbox"))
-"""
+    with usage2_col.container(height=600, border=True):
+        st.write("#### Usage 2")
+        st_code_fn(usage2)
+        usage2()
 
-
-usage_code2 = r"""
-with cookie_manager.sync("my_textinput", "my_number"):
-    st.text_input("Enter text", key="my_textinput")
-    st.number_input("Enter number", key="my_number")
-    
-st.write("my_textinput", st.session_state.get("my_textinput"))
-st.write("my_number", st.session_state.get("my_number"))
-"""
+    st.write("### Cookies states")
+    cookies_states()
 
 
-usage1_col, usage2_col = main_col.columns(2)
-with usage1_col.container(height=500, border=True):
-    st.write("#### Usage 1")
-    st.code(usage_code1, language="python")
-    exec(usage_code1)
-
-with usage2_col.container(height=500, border=True):
-    st.write("#### Usage 2")
-    st.code(usage_code2, language="python")
-    exec(usage_code2)
+if __name__ == "__main__":
+    main()

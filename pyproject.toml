@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "st_cookie"
+version = "0.2.3"
+description = "Streamlit Cookie Writer and Reader"
+readme = "README.md"
+authors = [{ name = "xtliu97", email = "xtliu1112@outlook.com" }]
+requires-python = ">=3.8"
+dependencies = ["streamlit>=1.37.0", "streamlit-cookies-controller"]
+
+[project.urls]
+Homepage = "https://github.com/xtliu97/st_cookie"

@@ -8,7 +8,17 @@ from streamlit_cookies_controller import CookieController
 from .core import CookieKV, _Key, key_prefix
 
 
-class CookieManager:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class CookieManager(metaclass=Singleton):
     def __init__(self) -> None:
         self.cookie_controller = CookieController()
 

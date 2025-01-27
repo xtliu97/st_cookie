@@ -1,4 +1,5 @@
 import streamlit as st
+
 import st_cookie
 
 st.set_page_config(layout="wide")
@@ -37,9 +38,7 @@ def usage2():
 def cookies_states():
     if st.button("Clear all", type="secondary"):
         st_cookie.remove_all()
-    st.info(
-        "All the related cookies values will be loaded only once after a new session is started."
-    )
+    st.info("All the related cookies values will be loaded only once after a new session is started.")
     with st.expander("Show all cookies", expanded=True):
         st.json(st_cookie.get_all())
         st.write(st.context.cookies)
